@@ -412,7 +412,7 @@ void Decompression_Binaire(FILE* fichier_compresse)
 
     fclose(fichier_decompresse_binaire);
     fclose(fichierTrans);
-    remove(Decompression Etape1.txt);
+    remove("Decompression Etape1.txt");
 }
 //---------------------------------------------------------------------
 int traductionEnNombre(FILE* fichierEntre) 

@@ -1,0 +1,11 @@
+# Compiled C engine binaries
+/engine/compresser
+/engine/decompresser
+*.o
+
+# Editor / OS noise
+.DS_Store
+*.swp
+
+# Local tooling
+node_modules/

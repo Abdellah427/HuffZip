@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HuffZip — Huffman coding, en direct</title>
+  <meta name="description" content="HuffZip compresse du texte avec le codage de Huffman, directement dans le navigateur : arbre binaire, table des codes et taux de compression en temps réel." />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/css/fonts.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <!-- ============ top bar ============ -->
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#top" aria-label="HuffZip">
+        <svg class="brand-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <path d="M16 8 9 15M16 8 23 15M23 18 20 24M23 18 27 24" stroke="#b9cbc7" stroke-width="1.4"/>
+          <rect x="13.4" y="5.4" width="5.2" height="5.2" fill="#f6f9f8" stroke="#647a77" stroke-width="1.4"/>
+          <rect x="6.4" y="13.4" width="5.2" height="5.2" fill="#f6f9f8" stroke="#0c9284" stroke-width="1.4"/>
+          <rect x="20.4" y="13.4" width="5.2" height="5.2" fill="#0c2226"/>
+          <rect x="17.4" y="21.4" width="5.2" height="5.2" fill="#f6f9f8" stroke="#0c9284" stroke-width="1.4"/>
+          <rect x="24.4" y="21.4" width="5.2" height="5.2" fill="#f6f9f8" stroke="#b3720c" stroke-width="1.4"/>
+        </svg>
+        <span class="brand-name">Huff<b>Zip</b></span>
+      </a>
+      <div class="topbar-actions">
+        <a class="ghost-link hide-sm" href="#how" data-i18n="nav.how">Comment ça marche</a>
+        <a class="ghost-link hide-sm" href="#about" data-i18n="nav.about">À propos</a>
+        <a class="ghost-link" href="https://github.com/thibaultgm78/huffman-compilation" target="_blank" rel="noopener">GitHub</a>
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button type="button" data-lang="fr" aria-pressed="true">FR</button>
+          <button type="button" data-lang="en" aria-pressed="false">EN</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- ============ hero / live studio ============ -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-head">
+          <p class="eyebrow" data-i18n="hero.eyebrow">Codage de Huffman · démonstration interactive</p>
+          <h1 data-i18n="hero.title">Chaque caractère mérite <span class="accent">sa juste longueur</span>.</h1>
+          <p class="hero-lede" data-i18n="hero.lede">Tapez un texte : HuffZip compte les caractères, construit l'arbre de Huffman et attribue les codes les plus courts aux symboles les plus fréquents. Compression sans perte, calculée en direct dans votre navigateur.</p>
+        </div>
+
+        <div class="studio">
+          <!-- input -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title" data-i18n="studio.input">Texte source</span>
+              <span class="verify" id="verify">
+                <span class="dot"></span>
+                <span data-i18n="studio.verified">aller-retour vérifié</span>
+              </span>
+            </div>
+            <div class="panel-body">
+              <textarea class="editor" id="editor" spellcheck="false" aria-label="Texte à compresser"></textarea>
+              <div class="editor-foot">
+                <span class="count"><b id="char-count">0</b> <span data-i18n="studio.chars">caractères</span> · <b id="unique-count">0</b> <span data-i18n="studio.unique">symboles</span></span>
+                <div class="samples" id="samples"></div>
+              </div>
+              <div class="io-row">
+                <label class="btn-file" for="file-input" data-i18n="studio.import">Importer un fichier .txt</label>
+                <input id="file-input" type="file" accept=".txt,text/plain" hidden />
+                <span class="io-hint" id="io-hint" data-i18n="studio.dropHint">ou glissez-déposez un .txt ici</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- readout -->
+          <div class="panel">
+            <div class="panel-head">
+              <span class="panel-title" data-i18n="studio.readout">Résultat</span>
+            </div>
+            <div class="panel-body gauge">
+              <div class="ratio-readout">
+                <span class="ratio-big" id="saved-pct">0%</span>
+                <span class="ratio-label" data-i18n="studio.saved">de taille en moins</span>
+              </div>
+
+              <div class="bars">
+                <div class="bar-row">
+                  <span class="bar-tag" data-i18n="studio.original">Origine</span>
+                  <div class="bar-track"><div class="bar-fill orig"></div><span class="bar-val" id="orig-val">0 b</span></div>
+                </div>
+                <div class="bar-row">
+                  <span class="bar-tag" data-i18n="studio.compressed">Huffman</span>
+                  <div class="bar-track"><div class="bar-fill comp" id="comp-bar"></div><span class="bar-val" id="comp-val">0 b</span></div>
+                </div>
+              </div>
+
+              <div class="metrics">
+                <div class="metric">
+                  <div class="metric-k" data-i18n="metric.avg">Longueur moyenne</div>
+                  <div class="metric-v"><span id="avg-len">0</span> <small data-i18n="metric.bitsSym">bits/symb.</small></div>
+                </div>
+                <div class="metric">
+                  <div class="metric-k" data-i18n="metric.entropy">Entropie (limite)</div>
+                  <div class="metric-v"><span id="entropy">0</span> <small data-i18n="metric.bitsSym">bits/symb.</small></div>
+                </div>
+                <div class="metric">
+                  <div class="metric-k" data-i18n="metric.origBytes">Poids d'origine</div>
+                  <div class="metric-v"><span id="orig-bytes">0</span> <small>o</small></div>
+                </div>
+                <div class="metric">
+                  <div class="metric-k" data-i18n="metric.compBytes">Poids compressé</div>
+                  <div class="metric-v"><span id="comp-bytes">0</span> <small>o</small></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ tree (signature) ============ -->
+    <section class="section" id="tree">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow" data-i18n="tree.eyebrow">La structure</p>
+          <h2 data-i18n="tree.title">L'arbre de Huffman</h2>
+          <p data-i18n="tree.desc">On fusionne à répétition les deux symboles les plus rares. Le chemin de la racine à une feuille est son code : à gauche on écrit 0, à droite 1. Les feuilles proches de la racine — donc les caractères fréquents — obtiennent les codes les plus courts.</p>
+        </div>
+        <div class="tree-panel">
+          <div class="tree-scroll">
+            <svg id="tree-svg" role="img" aria-label="Arbre de Huffman"></svg>
+          </div>
+          <div class="tree-legend">
+            <span class="legend-item"><span class="legend-swatch b0"></span> <span data-i18n="tree.left">à gauche = 0</span></span>
+            <span class="legend-item"><span class="legend-swatch b1"></span> <span data-i18n="tree.right">à droite = 1</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ code table ============ -->
+    <section class="section" id="codes">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow" data-i18n="codes.eyebrow">La correspondance</p>
+          <h2 data-i18n="codes.title">Table des codes</h2>
+          <p data-i18n="codes.desc">Aucun code n'est le préfixe d'un autre, si bien que la suite de bits se relit sans ambiguïté ni séparateur. Les symboles les plus fréquents apparaissent en premier.</p>
+        </div>
+        <div class="code-grid" id="code-grid"></div>
+      </div>
+    </section>
+
+    <!-- ============ bitstream ============ -->
+    <section class="section" id="bitstream">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow" data-i18n="stream.eyebrow">Le résultat brut</p>
+          <h2 data-i18n="stream.title">Le flux binaire</h2>
+          <p data-i18n="stream.desc">Chaque caractère du texte remplacé par son code, bout à bout. C'est cette suite que l'on regroupe en octets pour l'écrire sur le disque.</p>
+        </div>
+        <div class="stream-panel">
+          <div class="stream-body">
+            <div class="stream" id="stream"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ how it works ============ -->
+    <section class="section" id="how">
+      <div class="wrap">
+        <div class="section-head">
+          <p class="eyebrow" data-i18n="how.eyebrow">Le principe</p>
+          <h2 data-i18n="how.title">Quatre étapes</h2>
+        </div>
+        <div class="steps">
+          <div class="step">
+            <span class="step-n">01</span>
+            <h3 data-i18n="how.s1.t">Compter</h3>
+            <p data-i18n="how.s1.d">On relève le nombre d'occurrences de chaque caractère du texte.</p>
+          </div>
+          <div class="step">
+            <span class="step-n">02</span>
+            <h3 data-i18n="how.s2.t">Construire</h3>
+            <p data-i18n="how.s2.d">On fusionne les deux nœuds les plus rares, encore et encore, jusqu'à un seul arbre.</p>
+          </div>
+          <div class="step">
+            <span class="step-n">03</span>
+            <h3 data-i18n="how.s3.t">Coder</h3>
+            <p data-i18n="how.s3.d">Le chemin vers chaque feuille donne un code binaire, court pour les fréquents.</p>
+          </div>
+          <div class="step">
+            <span class="step-n">04</span>
+            <h3 data-i18n="how.s4.t">Empaqueter</h3>
+            <p data-i18n="how.s4.d">On concatène les codes et on regroupe les bits en octets écrits sur le disque.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ about / engine ============ -->
+    <section class="section" id="about">
+      <div class="wrap">
+        <div class="about-grid">
+          <div>
+            <p class="eyebrow" data-i18n="about.eyebrow">À propos</p>
+            <h2 data-i18n="about.title">D'un projet C à une démo web</h2>
+            <p data-i18n="about.p1">HuffZip est né d'un projet universitaire de 2022 : un compresseur et un décompresseur écrits en C, avec leurs propres listes chaînées et arbres binaires, sans aucune bibliothèque. Le code d'origine vit toujours dans le dépôt, sous <span class="foot mono">engine/</span>.</p>
+            <p data-i18n="about.p2">Cette interface reprend le même algorithme, réécrit en JavaScript pour s'exécuter dans le navigateur. Rien n'est envoyé à un serveur : tout le calcul se fait sur votre machine, et chaque compression est revérifiée par décodage pour garantir qu'elle est sans perte.</p>
+          </div>
+          <div class="facts">
+            <div class="fact"><span class="fact-k" data-i18n="about.f1k">Algorithme</span><span class="fact-v">Huffman (1952)</span></div>
+            <div class="fact"><span class="fact-k" data-i18n="about.f2k">Type</span><span class="fact-v" data-i18n="about.f2v">Sans perte</span></div>
+            <div class="fact"><span class="fact-k" data-i18n="about.f3k">Moteur d'origine</span><span class="fact-v">C — 2022</span></div>
+            <div class="fact"><span class="fact-k" data-i18n="about.f4k">Interface</span><span class="fact-v" data-i18n="about.f4v">JavaScript, sans dépendance</span></div>
+            <div class="fact"><span class="fact-k" data-i18n="about.f5k">Calcul</span><span class="fact-v" data-i18n="about.f5v">100 % côté client</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-inner">
+      <p><span class="mono">Huff<b style="color:var(--one)">Zip</b></span> — <span data-i18n="foot.tag">codage de Huffman, en direct</span></p>
+      <p class="foot-links">
+        <a href="mentions.html" data-i18n="foot.legal">Mentions légales</a>
+        <span class="foot-sep">·</span>
+        <span class="mono" data-i18n="foot.credit">Abdellah Hassani · Thibault Garcia-Megevand</span>
+      </p>
+    </div>
+  </footer>
+
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
