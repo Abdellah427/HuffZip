@@ -2,6 +2,8 @@
 
 **Lossless text compression with Huffman coding — computed live in the browser.**
 
+**Live:** [abdellah-hassani.fr/huffzip](https://abdellah-hassani.fr/huffzip)
+
 HuffZip turns a piece of text into its Huffman encoding and shows every step of
 the way: the frequency of each character, the binary tree that assigns short
 codes to frequent symbols, the code table, and the resulting bitstream. Nothing
@@ -50,11 +52,22 @@ JavaScript.
 ├── engine/               Original C compressor / decompressor (2022)
 │   ├── compression/
 │   ├── decompression/
+│   ├── huffzip.bat       One-click build + compress + decompress + verify (Windows)
+│   ├── demo.sh           Same, for macOS / Linux
+│   ├── Makefile
 │   └── README.md
 └── docs/preview.png
 ```
 
-## Run locally
+## Deployment
+
+The web app is live at
+[abdellah-hassani.fr/huffzip](https://abdellah-hassani.fr/huffzip). It is a set
+of static files (no PHP, database or Node runtime), so it can be served from any
+static host by copying `index.html`, `mentions.html` and the `assets/` folder
+into the web root.
+
+## Run the web app locally
 
 The site is fully static. Because it uses ES modules, open it through a local
 web server rather than the `file://` protocol:
@@ -65,20 +78,18 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-## Deploy on OVH shared hosting
+## Run the C engine locally
 
-The application is a set of static files, so no PHP, database or Node runtime is
-required on the server.
+Build the original compressor and decompressor and check a full round-trip in
+one step:
 
-1. Connect to your hosting with an FTP client (FileZilla) or over SSH, using the
-   credentials from your OVH control panel.
-2. Copy `index.html`, the `assets/` folder and the `docs/` folder into the web
-   root of your hosting — usually the `www/` directory.
-3. Open your domain in a browser. That is all — there is nothing to build.
+```bash
+cd engine
+./demo.sh path/to/file.txt      # macOS / Linux
+```
 
-To serve it under a subfolder (for example `example.com/huffzip`), create that
-folder inside `www/` and upload the files there. All paths in the project are
-relative, so it works from any location.
+On Windows, double-click `engine/huffzip.bat` or drag a `.txt` file onto it. See
+[`engine/README.md`](engine/README.md) for details and the file format.
 
 ## The Huffman idea, in four steps
 
@@ -118,11 +129,14 @@ binaires, sans aucune bibliothèque. Ce moteur d'origine se trouve toujours dans
 [`engine/`](engine/). L'application web reprend le même algorithme, réécrit en
 JavaScript sans dépendance.
 
-**Lancer en local** — le site est statique mais utilise des modules ES : servez-le
-via un petit serveur local (`python3 -m http.server 8000`) plutôt qu'en
-`file://`.
+**En ligne** — l'application est déployée sur
+[abdellah-hassani.fr/huffzip](https://abdellah-hassani.fr/huffzip).
 
-**Héberger sur OVH mutualisé** — copiez `index.html`, le dossier `assets/` et le
-dossier `docs/` à la racine web de votre hébergement (généralement `www/`) par
-FTP ou SSH. Aucune base de données ni PHP n'est nécessaire ; il n'y a rien à
-compiler.
+**Lancer le site en local** — il est statique mais utilise des modules ES :
+servez-le via un petit serveur local (`python3 -m http.server 8000`) plutôt
+qu'en `file://`.
+
+**Tester le moteur C** — dans `engine/`, lancez `./demo.sh mon_fichier.txt`
+(macOS / Linux) ou double-cliquez sur `engine/huffzip.bat` (Windows, ou
+glissez-y un `.txt`). Il compile, compresse, décompresse et vérifie que
+l'original est reconstruit à l'identique.

@@ -13,7 +13,7 @@ int main()
  
     FILE* fichier = NULL;
     FILE* fichier_compresse = NULL;
-    fichier = fopen("Fichier a compresser.txt", "r");
+    fichier = fopen("Fichier a compresser.txt", "rb");
  
     if (fichier == NULL)
     {
@@ -24,6 +24,14 @@ int main()
     // liste d'occurrence
     liste_occurrence = Creation_Liste_Occurrence(fichier);
     Trie_Liste_Croissant(liste_occurrence);
+
+    // Cas degenere : un seul caractere distinct -> pas de code binaire possible.
+    if (Taille_Liste(liste_occurrence) < 2)
+    {
+        printf("Le fichier doit contenir au moins deux caracteres differents pour etre compresse.\n");
+        fclose(fichier);
+        exit(0);
+    }
 
     // arbre de Huffman
     arbre_huffman = Creer_Arbre_Huffman(fichier);

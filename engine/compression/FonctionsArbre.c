@@ -83,7 +83,11 @@ qui contient toutes les lettres du texte à compresser (liste_occurrence).
         printf("Erreur : liste NULL");
         exit(1);
     }
-    
+
+    // Un seul caractere distinct : l'arbre se reduit a cette feuille (evite un
+    // retour non initialise si la boucle de fusion ne s'execute jamais).
+    if (Taille_Liste(liste) == 1) return liste->premier->arbre;
+
     while (Taille_Liste(liste) != 1)
     {
         

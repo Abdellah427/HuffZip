@@ -163,7 +163,7 @@ PListeConv Creer_tableau_conversion_binaire(PListe liste_occurrence, PArbre arbr
 
 void Retransciption(FILE* fichierEntre,PListeConv liste, PArbre arbreHuffman)
 {
-    FILE* fichierSortie = fopen("CompressionEtape1.txt","w");//fichier temporaire
+    FILE* fichierSortie = fopen("CompressionEtape1.txt","wb");//fichier temporaire (binaire : pas de conversion de fins de ligne)
     PElementConv element = MALLOC(ElementConv);
 	int taille_tableau = liste->tailleTableau;
     char lettre_lu;
@@ -323,9 +323,9 @@ FILE* Compression(void) // Prend en entre le fichier en binaire   ! idée : conv
 
 */
 {
-	FILE* fichier = fopen("CompressionEtape1.txt","r");
-	FILE*  fichierTrans = fopen("Fichier Compresse.txt","w");
-	FILE*  fichier_compresse = fopen("fichierCompresse0.txt", "w");
+	FILE* fichier = fopen("CompressionEtape1.txt","rb");
+	FILE*  fichierTrans = fopen("Fichier Compresse.txt","wb");
+	FILE*  fichier_compresse = fopen("fichierCompresse0.txt", "wb");
 	char lettre_lu;
 	int nombre_Bits;
 	
@@ -375,15 +375,17 @@ FILE* Compression(void) // Prend en entre le fichier en binaire   ! idée : conv
 
 	}
 
-	// on écrit le dernier (complete par des 0)
+	// on écrit le dernier paquet (complété par des 0)
+	// Il reste (nombre_Bits % 7) bits réels ; les positions restantes du paquet
+	// gardent la valeur 0 (bourrage). nCharManquant = nombre de zéros ajoutés.
 
 	nCharManquant = 7 - (nombre_Bits%7);
 	for (j=0; j<7; j++) tab[j] = 0;
-	for (j=0; j<nCharManquant; j++) 
+	for (j=0; j<(nombre_Bits%7); j++)
 	{
 		tab[j] = fgetc(fichier) - '0';
 	}
-	
+
 	fprintf(fichier_compresse,"%c",Conversion_En_Decimal(tab));
 
 	//On ecrit au debut du fichier combien de 0 on ete ajoute
@@ -391,12 +393,13 @@ FILE* Compression(void) // Prend en entre le fichier en binaire   ! idée : conv
 	fprintf(fichierTrans, "%d", nCharManquant);
 
 	fclose(fichier_compresse);
-	fichier_compresse = fopen("fichierCompresse0.txt","r");
-	
-	lettre_lu = fgetc(fichier_compresse);
-	while(lettre_lu != EOF){
-		fprintf(fichierTrans, "%c", lettre_lu);
-		lettre_lu = fgetc(fichier_compresse);
+	fichier_compresse = fopen("fichierCompresse0.txt","rb");
+
+	// Recopie octet par octet (int, pour ne pas confondre l'octet 0xFF avec EOF).
+	int octet = fgetc(fichier_compresse);
+	while(octet != EOF){
+		fprintf(fichierTrans, "%c", octet);
+		octet = fgetc(fichier_compresse);
 	}
 
 	fclose(fichier);

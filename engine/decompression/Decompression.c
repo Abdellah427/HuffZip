@@ -334,8 +334,8 @@ int finPremierePartie(FILE* fichierEntre)
 
 void Decompression_Binaire(FILE* fichier_compresse)
 {
-    FILE* fichier_decompresse_binaire = fopen("Decompression Etape1.txt","w"); // fichier temporaire
-    FILE* fichierTrans = fopen("fichierTrans.txt","w");
+    FILE* fichier_decompresse_binaire = fopen("Decompression Etape1.txt","wb"); // fichier temporaire (binaire)
+    FILE* fichierTrans = fopen("fichierTrans.txt","wb");
     char lettre_lu;
     int position_fin;
     int nombre_bits_valide;
@@ -387,7 +387,7 @@ void Decompression_Binaire(FILE* fichier_compresse)
   
     //
     fclose(fichier_decompresse_binaire);
-    fichier_decompresse_binaire = fopen("Decompression Etape1.txt","r");
+    fichier_decompresse_binaire = fopen("Decompression Etape1.txt","rb");
     
     //On ecrit le fichier qui sera utilise pour la decompression final
     fgetc(fichier_decompresse_binaire);//On ne veut pas le premier caractere
@@ -467,9 +467,9 @@ void Decompresse(void)
     //verification
     int nombreCarFichier = 0;
 
-    fichierEntre =  fopen("fichierTrans.txt", "r");
+    fichierEntre =  fopen("fichierTrans.txt", "rb");
 
-    fichierSortie = fopen("Fichier Decompresse.txt", "w");
+    fichierSortie = fopen("Fichier Decompresse.txt", "wb");
 
     
     if (fichierSortie == NULL || fichierEntre == NULL)
@@ -534,7 +534,7 @@ void Decompresse(void)
 
     //verification
     fclose(fichierSortie);
-    fichierSortie = fopen("Fichier Decompresse.txt", "r");
+    fichierSortie = fopen("Fichier Decompresse.txt", "rb");
 
     while ((lettre = fgetc(fichierSortie)) != EOF) nombreCarFichier += 1;
     if (nombreCarFichier == tailleFinal) printf("Decompression effectue avec succes\n");
@@ -548,7 +548,7 @@ void Decompresse(void)
 //---------------------------------------------------------------------
 int main(void) 
 {
-    FILE* fichier_compresse = fopen("Fichier Compresse.txt","r");
+    FILE* fichier_compresse = fopen("Fichier Compresse.txt","rb");
 
     if (fichier_compresse == NULL)
     {

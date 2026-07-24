@@ -1,7 +1,10 @@
-# Compiled C engine binaries
+# Compiled C engine binaries and local run artifacts
 /engine/compresser
 /engine/decompresser
+/engine/bin/
+/engine/work/
 *.o
+*.exe
 
 # Editor / OS noise
 .DS_Store
